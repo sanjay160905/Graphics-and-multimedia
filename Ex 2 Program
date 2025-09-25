@@ -1,0 +1,34 @@
+from shapely.geometry import Polygon, box
+import matplotlib.pyplot as plt
+
+polygon_points = [(1, 1), (7, 2), (6, 6), (3, 8), (0, 5)]
+clip_window = (2, 2, 6, 6)
+
+poly = Polygon(polygon_points)
+window = box(*clip_window)
+clipped_poly = poly.intersection(window)
+
+fig, ax = plt.subplots()
+ax.set_aspect('equal')
+ax.set_title("Polygon Clipping Demo")
+
+x, y = poly.exterior.xy
+ax.fill(x, y, color='lightgray', alpha=0.5, label='Original Polygon')
+
+wx, wy = window.exterior.xy
+ax.plot(wx, wy, 'r--', linewidth=2, label='Clipping Window')
+
+if not clipped_poly.is_empty:
+    if clipped_poly.geom_type == 'Polygon':
+        cx, cy = clipped_poly.exterior.xy
+        ax.fill(cx, cy, color='skyblue', alpha=0.7, label='Clipped Polygon')
+    else:
+        for geom in clipped_poly.geoms:
+            cx, cy = geom.exterior.xy
+            ax.fill(cx, cy, color='skyblue', alpha=0.7)
+
+ax.legend()
+plt.xlabel("X")
+plt.ylabel("Y")
+plt.grid(True)
+plt.show()
