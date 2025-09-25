@@ -1,0 +1,132 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
+
+def get_cube():
+
+    return np.array([
+        [0, 0, 0],
+        [1, 0, 0],
+        [1, 1, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 1, 1],
+        [0, 1, 1]
+    ])
+
+def get_pyramid():
+
+    return np.array([
+        [0, 0, 0],
+        [1, 0, 0],
+        [1, 1, 0],
+        [0, 1, 0],
+        [0.5, 0.5, 1]
+    ])
+
+def translate(tx, ty, tz):
+    return np.array([
+        [1, 0, 0, tx],
+        [0, 1, 0, ty],
+        [0, 0, 1, tz],
+        [0, 0, 0, 1]
+    ])
+
+def scale(sx, sy, sz):
+    return np.array([
+        [sx, 0,  0, 0],
+        [0, sy,  0, 0],
+        [0, 0, sz, 0],
+        [0, 0,  0, 1]
+    ])
+
+def rotate_x(theta):
+    c, s = np.cos(theta), np.sin(theta)
+    return np.array([
+        [1, 0, 0, 0],
+        [0, c, -s, 0],
+        [0, s, c, 0],
+        [0, 0, 0, 1]
+    ])
+
+def rotate_y(theta):
+    c, s = np.cos(theta), np.sin(theta)
+    return np.array([
+        [c, 0, s, 0],
+        [0, 1, 0, 0],
+        [-s, 0, c, 0],
+        [0, 0, 0, 1]
+    ])
+
+def rotate_z(theta):
+    c, s = np.cos(theta), np.sin(theta)
+    return np.array([
+        [c, -s, 0, 0],
+        [s, c, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+    ])
+
+def apply_transform(vertices, matrix):
+    ones = np.ones((vertices.shape[0], 1))
+    homogenous = np.hstack([vertices, ones])
+    transformed = homogenous @ matrix.T
+    return transformed[:, :3]
+
+def plot_object(vertices, faces, ax, color="skyblue"):
+    poly3d = [[vertices[vertice] for vertice in face] for face in faces]
+    ax.add_collection3d(Poly3DCollection(poly3d, facecolors=color, linewidths=1, edgecolors='black', alpha=0.8))
+
+def plot_scene(original, transformed, faces):
+    fig = plt.figure(figsize=(10, 5))
+
+    ax1 = fig.add_subplot(121, projection='3d')
+    plot_object(original, faces, ax1, "lightgreen")
+    ax1.set_title("Original Object")
+    ax1.set_xlim([-2, 2])
+    ax1.set_ylim([-2, 2])
+    ax1.set_zlim([-2, 2])
+
+
+    ax2 = fig.add_subplot(122, projection='3d')
+    plot_object(transformed, faces, ax2, "skyblue")
+    ax2.set_title("Transformed Object")
+    ax2.set_xlim([-2, 2])
+    ax2.set_ylim([-2, 2])
+    ax2.set_zlim([-2, 2])
+
+    plt.show()
+
+if __name__ == "__main__":
+    choice = input("Choose object (cube/pyramid): ").strip().lower()
+    if choice == "cube":
+        vertices = get_cube()
+        faces = [[0,1,2,3], [4,5,6,7], [0,1,5,4], [2,3,7,6], [1,2,6,5], [4,7,3,0]]
+    else:
+        vertices = get_pyramid()
+        faces = [[0,1,2,3], [0,1,4], [1,2,4], [2,3,4], [3,0,4]]
+
+    print("Choose transformation: translate, scale, rotate_x, rotate_y, rotate_z")
+    t = input("Enter choice: ").strip().lower()
+
+    if t == "translate":
+        tx, ty, tz = map(float, input("Enter tx ty tz: ").split())
+        M = translate(tx, ty, tz)
+    elif t == "scale":
+        sx, sy, sz = map(float, input("Enter sx sy sz: ").split())
+        M = scale(sx, sy, sz)
+    elif t == "rotate_x":
+        theta = float(input("Enter angle in degrees: ")) * np.pi / 180
+        M = rotate_x(theta)
+    elif t == "rotate_y":
+        theta = float(input("Enter angle in degrees: ")) * np.pi / 180
+        M = rotate_y(theta)
+    else:
+        theta = float(input("Enter angle in degrees: ")) * np.pi / 180
+        M = rotate_z(theta)
+
+    transformed_vertices = apply_transform(vertices, M)
+
+    plot_scene(vertices, transformed_vertices, faces)
